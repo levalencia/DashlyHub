@@ -1,62 +1,49 @@
-// app/index.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, SafeAreaView, View, ScrollView } from 'react-native';
-import Column from './components/Column';
 import Sidebar from './components/Sidebar';
-import { ColumnData } from './types';
+import TwitterUserFeedColumn from './components/TwitterUserFeedColumn';
+import TwitterHashtagFeedColumn from './components/TwitterHashtagFeedColumn';
+import LinkedInUserFeedColumn from './components/LinkedInUserFeedColumn';
+import LinkedInHashtagFeedColumn from './components/LinkedInHashtagFeedColumn';
 
 export default function App() {
-  const columns: ColumnData[] = [
-    {
-      id: '1',
-      title: 'Home Timeline',
-      tweets: [
-        {
-          id: '1',
-          author: 'John Doe',
-          username: '@johndoe',
-          content: 'Just setting up my Twitter clone!',
-          timestamp: '2m',
-          likes: 5,
-          retweets: 2,
-          replies: 1,
-          avatar: 'https://via.placeholder.com/40'
-        },
-      ]
-    },
-    {
-      id: '2',
-      title: 'Notifications',
-      tweets: [
-        {
-          id: '2',
-          author: 'Jane Smith',
-          username: '@janesmith',
-          content: 'Mentioned you in a tweet',
-          timestamp: '5m',
-          likes: 3,
-          retweets: 1,
-          replies: 0,
-          avatar: 'https://via.placeholder.com/40'
-        }
-      ]
-    },
-    {
-      id: '3',
-      title: 'Messages',
-      tweets: []
+  const [columns, setColumns] = useState<Array<{ id: string; type: string }>>([]);
+
+  // Function to add a column based on the selected feed type
+  const addColumn = (feedType: string) => {
+    const newColumn = {
+      id: `${Date.now()}`, // unique ID for each column
+      type: feedType, // the type of the feed column (e.g., 'twitterUser', 'linkedinHashtag')
+    };
+    setColumns([...columns, newColumn]);
+  };
+
+  const removeColumn = (id: string) => {
+    setColumns(columns.filter((column) => column.id !== id));
+  };
+
+  const renderColumn = (column: { id: string; type: string }) => {
+    switch (column.type) {
+      case 'twitterUser':
+        return <TwitterUserFeedColumn key={column.id} onClose={() => removeColumn(column.id)} />;
+      case 'twitterHashtag':
+        return <TwitterHashtagFeedColumn key={column.id} onClose={() => removeColumn(column.id)} />;
+      case 'linkedinUser':
+        return <LinkedInUserFeedColumn key={column.id} onClose={() => removeColumn(column.id)} />;
+      case 'linkedinHashtag':
+        return <LinkedInHashtagFeedColumn key={column.id} onClose={() => removeColumn(column.id)} />;
+      default:
+        return null;
     }
-  ];
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.mainContainer}>
-        <Sidebar />
+        <Sidebar onAddColumn={addColumn} />
         <View style={styles.columnsWrapper}>
           <ScrollView horizontal={true} style={styles.columnsContainer}>
-            {columns.map((column) => (
-              <Column key={column.id} data={column} />
-            ))}
+            {columns.map((column) => renderColumn(column))}
           </ScrollView>
         </View>
       </View>

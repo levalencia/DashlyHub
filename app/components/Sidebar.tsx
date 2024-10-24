@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, Animated } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, Animated, Modal } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
 interface SidebarItem {
@@ -11,77 +11,56 @@ interface SidebarItem {
 }
 
 const sidebarItems: SidebarItem[] = [
-  { 
-    id: '1', 
-    icon: 'home', 
-    label: 'Dashboard'
-  },
-  { 
-    id: '2', 
-    icon: 'calendar', 
-    label: 'Content Calendar',
-    subItems: [
+  { id: '1', icon: 'home', label: 'Dashboard' },
+  { id: '2', icon: 'calendar', label: 'Content Calendar', subItems: [
       { id: '2.1', label: 'Schedule Posts' },
       { id: '2.2', label: 'Recurring Posts' }
-    ]
+    ] 
   },
-  { 
-    id: '3', 
-    icon: 'edit', 
-    label: 'Content Creation',
-    subItems: [
-      { id: '3.1', label: 'AI Copy Generator' },
-      { id: '3.2', label: 'AI Image Generator' }
-    ]
-  },
-  { 
-    id: '4', 
-    icon: 'bar-chart-2', 
-    label: 'Analytics',
-    subItems: [
-      { id: '4.1', label: 'Performance Reports' },
-      { id: '4.2', label: 'AI Insights' }
-    ]
-  },
-  { 
-    id: '5', 
-    icon: 'grid', 
-    label: 'Social Networks',
-    subItems: [
-      { id: '5.1', label: 'Connected Accounts' },
-      { id: '5.2', label: 'Platform Settings' }
-    ]
-  },
-  { 
-    id: '6', 
-    icon: 'users', 
-    label: 'Team',
-    subItems: [
-      { id: '6.1', label: 'Members' },
-      { id: '6.2', label: 'Roles & Permissions' }
-    ]
-  },
-  { 
-    id: '7', 
-    icon: 'briefcase', 
-    label: 'Client Management'
-  },
-  { 
-    id: '8', 
-    icon: 'bell', 
-    label: 'Notifications'
-  },
-  { 
-    id: '9', 
-    icon: 'settings', 
-    label: 'Settings'
-  },
+  { id: '3', icon: 'bell', label: 'Notifications' },
+  { id: '4', icon: 'settings', label: 'Settings' }
 ];
 
-const Sidebar: React.FC = () => {
+interface AddFeedProps {
+  onAddFeed: (feedType: string) => void;
+  onClose: () => void;
+}
+
+const AddFeedModal: React.FC<AddFeedProps> = ({ onAddFeed, onClose }) => {
+  return (
+    <Modal transparent={true} animationType="fade">
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <TouchableOpacity style={styles.modalOption} onPress={() => onAddFeed('linkedinUser')}>
+            <Feather name="linkedin" size={20} color="#8899A6" />
+            <Text style={styles.modalOptionText}>Add LinkedIn User Feed</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.modalOption} onPress={() => onAddFeed('twitterUser')}>
+            <Feather name="twitter" size={20} color="#8899A6" />
+            <Text style={styles.modalOptionText}>Add Twitter User Feed</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.modalOption} onPress={() => onAddFeed('twitterHashtag')}>
+            <Feather name="hash" size={20} color="#8899A6" />
+            <Text style={styles.modalOptionText}>Add Twitter Hashtag Feed</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.modalOption} onPress={() => onAddFeed('linkedinHashtag')}>
+            <Feather name="hash" size={20} color="#8899A6" />
+            <Text style={styles.modalOptionText}>Add LinkedIn Hashtag Feed</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onClose}>
+            <Text style={styles.modalCancel}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+const Sidebar: React.FC<{ onAddColumn: (feedType: string) => void }> = ({ onAddColumn }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [width] = useState(new Animated.Value(300));
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [showAddFeedModal, setShowAddFeedModal] = useState(false);
 
   const toggleSidebar = () => {
     Animated.timing(width, {
@@ -99,6 +78,11 @@ const Sidebar: React.FC = () => {
     }
   };
 
+  const handleAddFeed = (feedType: string) => {
+    setShowAddFeedModal(false);
+    onAddColumn(feedType);
+  };
+
   return (
     <Animated.View style={[styles.sidebar, { width }]}>
       <TouchableOpacity 
@@ -113,10 +97,10 @@ const Sidebar: React.FC = () => {
       </TouchableOpacity>
 
       <View style={styles.logoContainer}>
-        <Feather name="share-2" size={24} color="#1DA1F2" />
-        {!isCollapsed && <Text style={styles.logoText}>Social Manager</Text>}
+        <Feather name="aperture" size={24} color="#1DA1F2" />
+        {!isCollapsed && <Text style={styles.logoText}>Dashly Hub</Text>}
       </View>
-      
+
       <View style={styles.nav}>
         {sidebarItems.map((item) => (
           <View key={item.id}>
@@ -155,10 +139,7 @@ const Sidebar: React.FC = () => {
             {!isCollapsed && item.subItems && expandedItem === item.id && (
               <View style={styles.subItems}>
                 {item.subItems.map((subItem) => (
-                  <TouchableOpacity
-                    key={subItem.id}
-                    style={styles.subItem}
-                  >
+                  <TouchableOpacity key={subItem.id} style={styles.subItem}>
                     <Text style={styles.subItemText}>{subItem.label}</Text>
                   </TouchableOpacity>
                 ))}
@@ -169,14 +150,18 @@ const Sidebar: React.FC = () => {
       </View>
 
       {!isCollapsed && (
-        <TouchableOpacity style={styles.createButton}>
-          <Text style={styles.createButtonText}>Create Post</Text>
+        <TouchableOpacity style={styles.createButton} onPress={() => setShowAddFeedModal(true)}>
+          <Text style={styles.createButtonText}>Add Feed</Text>
         </TouchableOpacity>
       )}
       {isCollapsed && (
-        <TouchableOpacity style={styles.collapsedCreateButton}>
+        <TouchableOpacity style={styles.collapsedCreateButton} onPress={() => setShowAddFeedModal(true)}>
           <Feather name="plus" size={24} color="#FFFFFF" />
         </TouchableOpacity>
+      )}
+
+      {showAddFeedModal && (
+        <AddFeedModal onAddFeed={handleAddFeed} onClose={() => setShowAddFeedModal(false)} />
       )}
     </Animated.View>
   );
@@ -184,107 +169,111 @@ const Sidebar: React.FC = () => {
 
 const styles = StyleSheet.create({
   sidebar: {
-    backgroundColor: '#15202B',
-    borderRightWidth: 1,
-    borderRightColor: '#38444D',
     height: '100%',
+    backgroundColor: '#192734',
+    paddingTop: 20,
   },
   toggleButton: {
-    position: 'absolute',
-    right: -12,
-    top: 20,
-    backgroundColor: '#192734',
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 24,
     alignItems: 'center',
-    zIndex: 1,
-    borderWidth: 1,
-    borderColor: '#38444D',
   },
   logoContainer: {
-    height: 60,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#38444D',
+    justifyContent: 'center',
+    paddingBottom: 24,
   },
   logoText: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: 'bold',
-    marginLeft: 12,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   nav: {
     flex: 1,
-    paddingTop: 10,
+    paddingHorizontal: 16,
   },
   navItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    marginHorizontal: 10,
-    borderRadius: 8,
+    paddingVertical: 12,
   },
   navItemContent: {
     flex: 1,
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  collapsedNavItem: {
-    justifyContent: 'center',
-    padding: 12,
-  },
-  activeNavItem: {
-    backgroundColor: '#162D40',
+    marginLeft: 16,
   },
   navText: {
     color: '#8899A6',
-    fontSize: 15,
-    marginLeft: 20,
-    fontWeight: '500',
+    fontSize: 16,
+  },
+  activeNavItem: {
+    backgroundColor: '#1DA1F2',
+    borderRadius: 8,
   },
   activeNavText: {
-    color: '#1DA1F2',
+    color: '#FFFFFF',
+  },
+  collapsedNavItem: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   subItems: {
-    marginLeft: 54,
-    marginTop: 5,
-    marginBottom: 5,
+    paddingLeft: 32,
   },
   subItem: {
-    padding: 8,
-    borderRadius: 6,
+    paddingVertical: 8,
   },
   subItemText: {
     color: '#8899A6',
-    fontSize: 14,
   },
   createButton: {
+    padding: 12,
     backgroundColor: '#1DA1F2',
-    padding: 15,
     borderRadius: 8,
+    margin: 16,
     alignItems: 'center',
-    marginHorizontal: 10,
-    marginBottom: 20,
-  },
-  collapsedCreateButton: {
-    backgroundColor: '#1DA1F2',
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 12,
-    marginBottom: 20,
   },
   createButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
+  },
+  collapsedCreateButton: {
+    padding: 12,
+    backgroundColor: '#1DA1F2',
+    borderRadius: 50,
+    margin: 16,
+    alignItems: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  modalContent: {
+    backgroundColor: '#192734',
+    borderRadius: 8,
+    padding: 16,
+    width: 300,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  modalOptionText: {
+    color: '#8899A6',
+    marginLeft: 12,
+    fontSize: 16,
+  },
+  modalCancel: {
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginTop: 16,
   },
 });
 

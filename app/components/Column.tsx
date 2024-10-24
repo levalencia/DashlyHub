@@ -1,49 +1,62 @@
 // app/components/Column.tsx
 import React from 'react';
-import { StyleSheet, View, Text, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Button } from 'react-native';
 import { ColumnData } from '../types';
-import TweetCard from './TweetCard';
 
 interface ColumnProps {
   data: ColumnData;
+  onClose: (id: string) => void; // Add onClose prop
 }
 
-const Column: React.FC<ColumnProps> = ({ data }) => {
+const Column: React.FC<ColumnProps> = ({ data, onClose }) => {
   return (
-    <View style={styles.column}>
+    <View style={styles.columnContainer}>
       <View style={styles.header}>
-        <Text style={styles.headerText}>{data.title}</Text>
+        <Text style={styles.title}>{data.title}</Text>
+        <Button title="X" onPress={() => onClose(data.id)} /> {/* Close button */}
       </View>
-      <ScrollView style={styles.tweetList}>
-        {data.tweets.map((tweet) => (
-          <TweetCard key={tweet.id} tweet={tweet} />
-        ))}
-      </ScrollView>
+      {/* Render tweets here */}
+      {data.tweets.length === 0 ? (
+        <Text style={styles.emptyMessage}>No tweets available</Text>
+      ) : (
+        data.tweets.map((tweet) => (
+          <View key={tweet.id} style={styles.tweet}>
+            <Text>{tweet.content}</Text>
+          </View>
+        ))
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  column: {
+  columnContainer: {
     width: 300,
-    backgroundColor: '#192734',
-    marginHorizontal: 5,
+    marginRight: 10,
+    backgroundColor: '#1DA1F2',
+    padding: 10,
     borderRadius: 10,
-    overflow: 'hidden',
-    height: '100%',
   },
   header: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#38444D',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
   },
-  headerText: {
-    color: '#FFFFFF',
+  title: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#FFFFFF',
   },
-  tweetList: {
-    flex: 1,
+  tweet: {
+    padding: 5,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 5,
+    marginBottom: 5,
+  },
+  emptyMessage: {
+    color: '#FFFFFF',
+    fontStyle: 'italic',
   },
 });
 
